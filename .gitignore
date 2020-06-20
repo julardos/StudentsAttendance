@@ -1,4 +1,6 @@
 venv
 datasets
 new_datasets/*
+temp
 __pycache__
+.idea

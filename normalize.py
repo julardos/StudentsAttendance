@@ -6,7 +6,7 @@ class FaceDetector(object):
     def __init__(self, deploy_path, caffe_path):
         self.net = cv2.dnn.readNetFromCaffe(deploy_path, caffe_path)
 
-    def detect(self, image, biggest_only=True):
+    def __detect__(self, image):
         image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
         (h, w) = image.shape[:2]
         blob = cv2.dnn.blobFromImage(cv2.resize(
@@ -17,14 +17,14 @@ class FaceDetector(object):
         faces_coord = []
         for i in range(0, detections.shape[2]):
             confidence = detections[0, 0, i, 2]
-            if confidence > 0.5:
+            if confidence > 0.99:
                 faces_coord.append((detections[0, 0, i, 3:7] * np.array([w, h, w, h])).astype("int"))
         faces_coord = np.array(faces_coord)
         return faces_coord
 
-    def cut_faces(self, image, faces_coord):
+    def __cut_faces__(self, image):
         faces = []
-
+        faces_coord = self.__detect__(image)
         for (startX, startY, endX, endY) in faces_coord:
             slicer = image[startY:endY, startX:endX]
             if (len(slicer)):
@@ -32,7 +32,7 @@ class FaceDetector(object):
 
         return faces
 
-    def resize(self, images, size=(224, 224)):
+    def __resize__(self, images, size=(224, 224)):
         images_norm = []
         for image in images:
             if image.shape < size:
@@ -45,8 +45,8 @@ class FaceDetector(object):
 
         return images_norm
 
-    def normalize_faces(self, image, faces_coord):
-        faces = self.cut_faces(image, faces_coord)
-        faces = self.resize(faces)
+    def normalize_faces(self, image):
+        faces = self.__cut_faces__(image)
+        faces = self.__resize__(faces, (150, 150))
 
         return faces
